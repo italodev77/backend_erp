@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id String @id @default(cuid())
+  name String
+  cpf String
+  email String
+  password String
+  user_category String
+  created_at DateTime? @default(now())
+  updated_at DateTime? @default(now())
+
+  @@map("users")
+}
+
+model Produto {
+  cod_produto     Int       @id @default(autoincrement())
+  cod_barras      String?
+  descricao       String
+  marca           String?
+  categoria       Categoria? @relation(fields: [categoriaId], references: [id])
+  categoriaId     String?
+  unidade_medida  String
+  preco_compra    Decimal
+  preco_custo     Decimal?
+  custo_medio     Decimal?
+  preco_venda     Decimal
+  preco_venda2    Decimal?
+  preco_venda_atacado    Decimal?
+  preco_venda_atacado2    Decimal?
+  qtd_atacado Decimal?
+  qtd_atacado2 Decimal?
+  estoque_real    Decimal
+  estoque_fiscal  Decimal
+  estoque_armazem Decimal
+  localizacao     Localizacao?
+  localizacaoId   Int?      // Chave estrangeira para o id da Localizacao
+  cestasBasicas   ItemCesta[] // Relacionamento com os itens de cestas básicas que contêm este produto
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Categoria {
+  id        String    @id @default(cuid())
+  nome    String
+  produtos  Produto[]
+}
+
+model Localizacao {
+  id          Int       @id @default(autoincrement())
+  rua         String
+  predio      String
+  lado        String
+  andar       String
+  apartamento String
+  produto     Produto @relation(fields: [cod_produto], references: [cod_produto])
+  cod_produto Int @unique
+}
+
+model CestaBasica {
+  id              Int       @id @default(autoincrement())
+  descricao       String
+  itensCesta      ItemCesta[] // Relacionamento com os itens da cesta
+
+  // Campos para cálculo de custo e preço da cesta
+  preco_custo     Decimal   // Preço total de custo da cesta
+  preco_venda     Decimal   // Preço total de venda da cesta
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model ItemCesta {
+  id              Int       @id @default(autoincrement())
+  cestaBasica     CestaBasica @relation(fields: [cestaBasicaId], references: [id])
+  cestaBasicaId   Int
+  produto         Produto    @relation(fields: [produtoId], references: [cod_produto])
+  produtoId       Int
+  codigoItem      String     // Código do item na cesta
+
+  // Outros campos adicionais, se necessário
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+
